@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StrumScroll — God Moments · Conner Smith</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Lato:wght@300;400;700&display=swap');
+  :root{
+    --bg:#0c0e10;--surface:#13161a;--card:#1c2028;--border:#2a2e38;
+    --accent:#e8a84c;--accent2:#5db8f5;--accent3:#c97bea;--green:#5de8a0;
+    --text:#ecedf0;--muted:#5a6070;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;overflow:hidden;}
+  body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;display:flex;flex-direction:column;}
+
+  /* HEADER */
+  header{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:8px 20px;border-bottom:1px solid var(--border);background:rgba(12,14,16,0.97);backdrop-filter:blur(10px);z-index:200;gap:12px;}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex-shrink:0;}
+  .song-meta{text-align:center;flex:1;min-width:0;}
+  .song-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .song-artist{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+  .header-right{display:flex;gap:7px;align-items:center;flex-shrink:0;}
+  .badge{font-size:9px;padding:3px 8px;border-radius:20px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+  .badge-key{background:rgba(232,168,76,0.15);color:var(--accent);border:1px solid rgba(232,168,76,0.35);}
+  .badge-inst{background:rgba(93,184,245,0.12);color:var(--accent2);border:1px solid rgba(93,184,245,0.3);}
+
+  /* LAYOUT */
+  .app-body{flex:1;display:grid;grid-template-columns:230px 1fr;min-height:0;}
+
+  /* SIDEBAR */
+  .sidebar{background:var(--surface);border-right:1px solid var(--border);padding:14px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;}
+  .sec-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  .capo-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;}
+  .capo-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .capo-btns{display:flex;gap:5px;flex-wrap:wrap;}
+  .capo-btn{flex:1;min-width:34px;padding:6px 4px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;text-align:center;transition:all 0.18s;}
+  .capo-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+  .capo-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(232,168,76,0.12);font-weight:700;}
+  .capo-tip{font-size:9px;color:var(--muted);margin-top:8px;line-height:1.6;font-style:italic;}
+  .capo-tip .hl{color:var(--green);font-style:normal;}
+  .capo-tip .star{color:var(--accent);font-style:normal;}
+  .chord-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+  .big-chord{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:2px;color:var(--accent);line-height:1;}
+  .chord-sub{font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:10px;min-height:28px;line-height:1.5;}
+  .nut-bar{height:5px;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:3px;margin:0 auto 3px;width:150px;}
+  .string-row{display:flex;justify-content:center;width:150px;margin:0 auto 2px;}
+  .s-label{width:25px;font-size:8px;color:var(--muted);font-family:'Space Mono',monospace;text-align:center;}
+  .fret-area{width:150px;margin:0 auto;position:relative;}
+  .fr-row{display:flex;height:22px;border-bottom:1px solid var(--border);}
+  .fr-cell{width:25px;display:flex;align-items:center;justify-content:center;border-right:1px solid rgba(255,255,255,0.06);}
+  .dot-f{width:13px;height:13px;border-radius:50%;background:var(--accent2);box-shadow:0 0 10px var(--accent2);}
+  .dot-o{width:11px;height:11px;border-radius:50%;background:transparent;border:2px solid var(--accent);}
+  .dot-x{font-size:9px;color:var(--muted);}
+  .capo-marker{height:5px;background:var(--green);border-radius:3px;margin-bottom:2px;display:flex;align-items:center;padding:0 4px;}
+  .capo-marker span{font-size:7px;color:#0a0808;font-weight:700;letter-spacing:1px;}
+  .up-list{display:flex;flex-direction:column;gap:5px;}
+  .up-item{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-radius:7px;background:var(--card);border:1px solid var(--border);transition:all 0.3s;}
+  .up-item.is-next{border-color:rgba(232,168,76,0.5);background:rgba(232,168,76,0.07);}
+  .up-name{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;}
+  .up-tag{font-size:9px;color:var(--muted);letter-spacing:1px;}
+  .info-list{display:flex;flex-direction:column;gap:6px;}
+  .info-row{display:flex;justify-content:space-between;font-size:11px;font-family:'Space Mono',monospace;}
+  .info-row .k{color:var(--muted);}
+  .info-row .v{color:var(--text);}
+
+  /* AUDIO NOTE */
+  .audio-note{background:rgba(93,184,245,0.08);border:1px solid rgba(93,184,245,0.25);border-radius:8px;padding:10px;font-size:10px;color:var(--accent2);line-height:1.6;text-align:center;}
+  .audio-note strong{display:block;margin-bottom:4px;letter-spacing:1px;}
+  .audio-note a{color:var(--accent);text-decoration:underline;}
+
+  /* MAIN PANEL */
+  .main-panel{display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+
+  /* CHORD TICKER */
+  .chord-ticker{flex:0 0 auto;background:linear-gradient(180deg,#0d0f14,#111421);border-bottom:2px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:14px;min-height:96px;position:relative;overflow:hidden;}
+  .chord-ticker::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(255,255,255,0.012) 60px,rgba(255,255,255,0.012) 61px);pointer-events:none;}
+  .ticker-now{display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(232,168,76,0.09);border:2px solid var(--accent);border-radius:12px;padding:6px 16px;min-width:88px;flex-shrink:0;}
+  .ticker-now-lbl{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:1px;}
+  .ticker-big{font-family:'Bebas Neue',sans-serif;font-size:54px;line-height:1;letter-spacing:2px;color:#fff;text-shadow:0 0 28px var(--accent);transition:opacity 0.15s,transform 0.15s;}
+  .ticker-sub{font-size:8px;color:rgba(232,168,76,0.7);letter-spacing:1px;margin-top:1px;text-align:center;}
+  @keyframes chordPop{0%{box-shadow:0 0 0 0 rgba(232,168,76,0.7)}100%{box-shadow:0 0 0 20px rgba(232,168,76,0)}}
+  .ticker-now.popping{animation:chordPop 0.45s ease-out;}
+  .ticker-sep{font-size:22px;color:var(--muted);flex-shrink:0;}
+  .ticker-queue{display:flex;align-items:center;gap:8px;flex:1;overflow:hidden;}
+  .t-card{display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:10px;padding:5px 12px;min-width:56px;background:var(--card);transition:all 0.3s;flex-shrink:0;}
+  .t-card.n1{border-color:rgba(93,184,245,0.55);background:rgba(93,184,245,0.07);}
+  .t-card.n2{opacity:0.65;}
+  .t-card.n3{opacity:0.35;}
+  .t-card-name{font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;letter-spacing:1px;}
+  .t-card.n1 .t-card-name{color:var(--accent2);}
+  .t-card.n2 .t-card-name{color:var(--muted);}
+  .t-card.n3 .t-card-name{color:#333;}
+  .t-card-sub{font-size:8px;color:var(--muted);letter-spacing:1px;}
+  .ticker-mini-fb{flex-shrink:0;width:126px;background:rgba(0,0,0,0.35);border:1px solid var(--border);border-radius:8px;padding:5px 7px;}
+  .tfb-nut{height:4px;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:2px;margin-bottom:2px;}
+  .tfb-slabels{display:flex;margin-bottom:1px;}
+  .tfb-sl{flex:1;font-size:7px;color:var(--muted);font-family:'Space Mono',monospace;text-align:center;}
+  .tfb-row{display:flex;height:17px;border-bottom:1px solid rgba(255,255,255,0.05);}
+  .tfb-cell{flex:1;display:flex;align-items:center;justify-content:center;border-right:1px solid rgba(255,255,255,0.05);}
+  .tfb-dot{width:10px;height:10px;border-radius:50%;background:var(--accent2);box-shadow:0 0 7px var(--accent2);}
+  .tfb-open{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--accent);}
+  .tfb-mute{font-size:8px;color:var(--muted);}
+
+  /* HIGHWAY */
+  .highway{flex:0 0 90px;background:linear-gradient(180deg,#060810,#0e1018);border-bottom:2px solid var(--border);position:relative;overflow:hidden;}
+  .hw-grid{position:absolute;inset:0;background-image:repeating-linear-gradient(180deg,transparent,transparent 36px,rgba(255,255,255,0.033) 36px,rgba(255,255,255,0.033) 38px);animation:hwS 0.55s linear infinite;}
+  .hw-grid.paused{animation-play-state:paused;}
+  @keyframes hwS{from{background-position:0 0}to{background-position:0 38px}}
+  .hw-lanes{position:absolute;inset:0;display:flex;}
+  .hw-lane{flex:1;border-right:1px solid rgba(255,255,255,0.04);}
+  .notes-layer{position:absolute;inset:0;pointer-events:none;}
+  .gem{position:absolute;width:calc(20% - 8px);height:23px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;animation:gF linear forwards;transform:translateY(-40px);border:2px solid;}
+  @keyframes gF{from{transform:translateY(-40px)}to{transform:translateY(140px)}}
+  .hit-zone{position:absolute;bottom:7px;left:0;right:0;height:36px;display:flex;gap:4px;padding:0 6px;z-index:10;}
+  .hbtn{flex:1;border-radius:8px;border:2px solid;cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;position:relative;overflow:hidden;transition:transform 0.07s;}
+  .hbtn::before{content:'';position:absolute;inset:0;background:currentColor;opacity:0.1;}
+  .hbtn:active,.hbtn.lit{transform:scaleY(0.88);}
+  .hbtn:nth-child(1){color:#ff4d79;border-color:#ff4d79;}
+  .hbtn:nth-child(2){color:#5db8f5;border-color:#5db8f5;}
+  .hbtn:nth-child(3){color:#e8a84c;border-color:#e8a84c;}
+  .hbtn:nth-child(4){color:#5de8a0;border-color:#5de8a0;}
+  .hbtn:nth-child(5){color:#c97bea;border-color:#c97bea;}
+  .hw-score{position:absolute;left:10px;top:5px;z-index:10;}
+  .hw-score-num{font-family:'Space Mono',monospace;font-size:13px;color:var(--accent2);}
+  .hw-score-lbl{font-size:7px;color:var(--muted);letter-spacing:2px;}
+  .hw-combo{position:absolute;right:10px;top:3px;z-index:10;text-align:right;}
+  .hw-combo-num{font-family:'Bebas Neue',sans-serif;font-size:29px;color:var(--accent3);line-height:1;text-shadow:0 0 14px var(--accent3);}
+  .hw-combo-lbl{font-size:7px;color:var(--muted);letter-spacing:2px;}
+  .flash-overlay{position:absolute;inset:0;pointer-events:none;opacity:0;}
+  .flash-overlay.pop{animation:fP 0.25s forwards;}
+  @keyframes fP{0%{opacity:0.3}100%{opacity:0}}
+
+  /* SCROLL STAGE — freely scrollable */
+  .scroll-stage{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;scroll-behavior:smooth;}
+  .scroll-stage::-webkit-scrollbar{width:4px;}
+  .scroll-stage::-webkit-scrollbar-track{background:var(--surface);}
+  .scroll-stage::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .scroll-track{padding:0 26px 20px;}
+
+  /* Song lines */
+  .s-line{padding:15px 0;border-bottom:1px solid rgba(255,255,255,0.04);min-height:74px;transition:border-left-color 0.4s,background 0.4s,opacity 0.4s,padding-left 0.4s;border-left:3px solid transparent;}
+  .s-line.active{border-left-color:var(--accent);padding-left:16px;background:linear-gradient(90deg,rgba(232,168,76,0.06),transparent 60%);}
+  .s-line.past{opacity:0.24;}
+  .section-marker{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--accent3);font-family:'Space Mono',monospace;padding:16px 0 4px;opacity:0.8;min-height:auto;border:none;border-left:none!important;}
+  .section-marker.active{padding-left:0!important;}
+  .chord-row{display:flex;flex-wrap:wrap;gap:0;min-height:22px;margin-bottom:3px;align-items:flex-end;}
+  .ch-tag{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--accent);padding-right:14px;line-height:1;white-space:nowrap;display:inline-block;transition:all 0.25s;}
+  .ch-tag.ch-active{color:#fff;text-shadow:0 0 18px var(--accent);font-size:21px;}
+  .lyric-line{font-size:15px;color:#a8b4c4;line-height:1.65;font-weight:300;letter-spacing:0.2px;transition:color 0.3s;}
+  .s-line.active .lyric-line{color:#fff;font-weight:400;}
+
+  /* BACK TO TOP BUTTON */
+  .back-to-top{
+    position:fixed;bottom:80px;right:20px;
+    width:46px;height:46px;border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),#c47a20);
+    color:#0a0808;border:none;cursor:pointer;
+    font-size:20px;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 20px rgba(232,168,76,0.4);
+    opacity:0;pointer-events:none;
+    transition:opacity 0.3s,transform 0.3s;
+    z-index:300;transform:translateY(10px);
+  }
+  .back-to-top.visible{opacity:1;pointer-events:auto;transform:translateY(0);}
+  .back-to-top:hover{box-shadow:0 6px 28px rgba(232,168,76,0.6);}
+
+  /* TRANSPORT */
+  .transport{flex:0 0 auto;background:var(--surface);border-top:1px solid var(--border);padding:9px 18px;display:flex;align-items:center;gap:13px;}
+  .tbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;}
+  .tbtn:hover{border-color:var(--accent);color:var(--accent);}
+  .tbtn.play-btn{width:46px;height:46px;font-size:17px;background:linear-gradient(135deg,var(--accent),#c47a20);border:none;color:#0a0808;box-shadow:0 0 20px rgba(232,168,76,0.35);}
+  .prog-area{flex:1;display:flex;flex-direction:column;gap:5px;}
+  .prog-wrap{height:5px;background:var(--card);border-radius:3px;cursor:pointer;position:relative;overflow:visible;}
+  .prog-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width 0.5s linear;position:relative;}
+  .prog-fill::after{content:'';position:absolute;right:0;top:-4px;width:13px;height:13px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);transform:translateX(50%);}
+  .time-row{display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);}
+  .speed-wrap{display:flex;gap:4px;align-items:center;flex-shrink:0;}
+  .speed-lbl{font-size:9px;color:var(--muted);letter-spacing:1px;}
+  .sp-btn{font-family:'Space Mono',monospace;font-size:9px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;transition:all 0.15s;}
+  .sp-btn:hover,.sp-btn.on{border-color:var(--accent);color:var(--accent);background:rgba(232,168,76,0.1);}
+
+  /* Spotify open button */
+  .spotify-btn{
+    flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;
+  }
+  .spotify-open-btn{
+    display:flex;align-items:center;gap:8px;
+    background:#1DB954;color:#000;border:none;
+    padding:10px 18px;border-radius:25px;cursor:pointer;
+    font-family:'Lato',sans-serif;font-weight:700;font-size:13px;
+    text-decoration:none;white-space:nowrap;
+    box-shadow:0 0 18px rgba(29,185,84,0.4);
+    transition:all 0.15s;
+  }
+  .spotify-open-btn:hover{background:#1ed760;box-shadow:0 0 26px rgba(29,185,84,0.6);}
+  .spotify-hint{font-size:9px;color:var(--muted);letter-spacing:1px;text-align:center;line-height:1.5;}
+
+  .countdown-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.92);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    z-index:1000;opacity:0;pointer-events:none;transition:opacity 0.2s;gap:10px;
+  }
+  .countdown-overlay.show{opacity:1;pointer-events:auto;}
+  .countdown-num{
+    font-family:'Bebas Neue',sans-serif;font-size:180px;line-height:1;
+    color:var(--accent);text-shadow:0 0 80px var(--accent);
+  }
+  .countdown-label{
+    font-size:16px;color:#fff;letter-spacing:2px;
+    text-transform:uppercase;text-align:center;max-width:340px;line-height:1.6;
+  }
+  .countdown-sub{font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:4px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">StrumScroll</div>
+  <div class="song-meta">
+    <div class="song-title">God Moments</div>
+    <div class="song-artist">Conner Smith · 2024</div>
+  </div>
+  <div class="header-right">
+    <span class="badge badge-key" id="keyBadge">No Capo</span>
+    <span class="badge badge-inst">🎸 Guitar</span>
+  </div>
+</header>
+
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div>
+      <div class="sec-label">Capo Settings</div>
+      <div class="capo-box">
+        <div class="capo-title">Select Capo Fret</div>
+        <div class="capo-btns" id="capoButtons">
+          <button class="capo-btn active" data-capo="0">None</button>
+          <button class="capo-btn" data-capo="1">1st</button>
+          <button class="capo-btn" data-capo="2">2nd</button>
+          <button class="capo-btn" data-capo="3">3rd</button>
+          <button class="capo-btn" data-capo="4">4th</button>
+          <button class="capo-btn" data-capo="5">5th</button>
+        </div>
+        <div class="capo-tip" id="capoTip"></div>
+      </div>
+    </div>
+    <div>
+      <div class="sec-label">Current Chord</div>
+      <div class="chord-box">
+        <div class="big-chord" id="chordName">—</div>
+        <div class="chord-sub" id="chordSub">Press Play to begin</div>
+        <div class="nut-bar"></div>
+        <div class="string-row">
+          <span class="s-label">E</span><span class="s-label">A</span>
+          <span class="s-label">D</span><span class="s-label">G</span>
+          <span class="s-label">B</span><span class="s-label">e</span>
+        </div>
+        <div class="fret-area" id="fretArea"></div>
+      </div>
+    </div>
+    <div>
+      <div class="sec-label">Up Next</div>
+      <div class="up-list" id="upList"></div>
+    </div>
+    <div>
+      <div class="sec-label">Song Info</div>
+      <div class="info-list">
+        <div class="info-row"><span class="k">Original Key</span><span class="v">C Maj</span></div>
+        <div class="info-row"><span class="k">Capo</span><span class="v" id="infoCapo">None</span></div>
+        <div class="info-row"><span class="k">Tempo</span><span class="v">~80 BPM</span></div>
+        <div class="info-row"><span class="k">Keys</span><span class="v">A S D F G</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="sec-label">Audio</div>
+      <div class="audio-note">
+        <strong>🎵 How to Play</strong>
+        <strong style="color:#1DB954;">Step 1:</strong> Click <em>Open God Moments</em> below — find the song in Spotify but <strong>don't press play yet.</strong><br><br>
+        <strong style="color:var(--accent);">Step 2:</strong> Press <strong>▶</strong> here. You'll hear 3 beeps — press Play on Spotify on the <strong>GO!</strong>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-panel">
+
+    <!-- CHORD TICKER -->
+    <div class="chord-ticker">
+      <div class="ticker-now" id="tickerNow">
+        <div class="ticker-now-lbl">Now Playing</div>
+        <div class="ticker-big" id="tickerBig">—</div>
+        <div class="ticker-sub" id="tickerSub">Press Play</div>
+      </div>
+      <div class="ticker-sep">›</div>
+      <div class="ticker-queue" id="tickerQueue"></div>
+      <div class="ticker-mini-fb">
+        <div class="tfb-nut"></div>
+        <div class="tfb-slabels">
+          <span class="tfb-sl">E</span><span class="tfb-sl">A</span><span class="tfb-sl">D</span>
+          <span class="tfb-sl">G</span><span class="tfb-sl">B</span><span class="tfb-sl">e</span>
+        </div>
+        <div id="tfbFrets"></div>
+      </div>
+    </div>
+
+    <!-- HIGHWAY -->
+    <div class="highway">
+      <div class="hw-lanes"><div class="hw-lane"></div><div class="hw-lane"></div><div class="hw-lane"></div><div class="hw-lane"></div><div class="hw-lane"></div></div>
+      <div class="hw-grid paused" id="hwGrid"></div>
+      <div class="notes-layer" id="notesLayer"></div>
+      <div class="flash-overlay" id="flashOverlay"></div>
+      <div class="hw-score"><div class="hw-score-lbl">Score</div><div class="hw-score-num" id="scoreEl">000000</div></div>
+      <div class="hw-combo"><div class="hw-combo-num" id="comboEl">0</div><div class="hw-combo-lbl">Combo</div></div>
+      <div class="hit-zone">
+        <div class="hbtn" data-i="0">E</div><div class="hbtn" data-i="1">A</div>
+        <div class="hbtn" data-i="2">D</div><div class="hbtn" data-i="3">G</div><div class="hbtn" data-i="4">B</div>
+      </div>
+    </div>
+
+    <!-- SCROLL STAGE — freely scrollable -->
+    <div class="scroll-stage" id="scrollStage">
+      <div class="scroll-track" id="scrollTrack"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BACK TO TOP -->
+<button class="back-to-top" id="backToTop" title="Back to top">↑</button>
+
+<!-- TRANSPORT -->
+<div class="transport">
+  <button class="tbtn" id="restartBtn">⟪</button>
+  <button class="tbtn play-btn" id="playBtn">▶</button>
+  <div class="prog-area">
+    <div class="prog-wrap" id="progWrap"><div class="prog-fill" id="progFill"></div></div>
+    <div class="time-row"><span id="elapsed">0:00</span><span id="duration">3:34</span></div>
+  </div>
+  <div class="speed-wrap">
+    <span class="speed-lbl">SPEED</span>
+    <button class="sp-btn" data-s="0.5">½×</button>
+    <button class="sp-btn" data-s="0.75">¾×</button>
+    <button class="sp-btn on" data-s="1">1×</button>
+  </div>
+  <div class="spotify-btn">
+    <a class="spotify-open-btn" href="https://open.spotify.com/track/7iockmH61ZUi1dLDP4f98s" target="_blank">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+      Open God Moments
+    </a>
+    <div class="spotify-hint">Open &amp; queue the song first</div>
+  </div>
+</div>
+
+<!-- Countdown Overlay -->
+<div class="countdown-overlay" id="countdownOverlay">
+  <div class="countdown-num" id="countdownNum">5</div>
+  <div class="countdown-label" id="countdownLabel">Switch to Spotify — press Play on GO!</div>
+  <div class="countdown-sub">Scroll starts automatically on GO</div>
+</div>
+
+<script>
+//  User presses Play on BOTH the Spotify widget and the ▶ button.
+// ══════════════════════════════════════════════
+function fmt(s) { s=Math.floor(s); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+
+let startTime  = null;   // Date.now() when play began
+let startOffset = 0;     // seconds into song at last play/seek
+
+function getTime() {
+  if (!playing || startTime === null) return startOffset;
+  return Math.min(startOffset + (Date.now() - startTime) / 1000 * speed, SONG.totalSeconds);
+}
+
+function loop() {
+  if (!playing) return;
+  const t = getTime();
+
+  document.getElementById('progFill').style.width = Math.min((t / SONG.totalSeconds) * 100, 100) + '%';
+  document.getElementById('elapsed').textContent = fmt(t);
+
+  let nl = 0;
+  for (let i = 0; i < SONG.lines.length; i++) {
+    if (SONG.lines[i].time <= t) nl = i; else break;
+  }
+
+  if (nl !== currentLine) {
+    currentLine = nl;
+    scrollToLine(currentLine);
+    scheduleGems(SONG.lines[currentLine]);
+  }
+
+  if (t >= SONG.totalSeconds) { stopPlay(); return; }
+  rafId = requestAnimationFrame(loop);
+}
+
+// Beep sound using Web Audio — scheduled in advance so tab switching doesn't stop them
+function scheduleBeeps() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+    // Beep at t=0,1,2,3,4 (the 5 countdown ticks)
+    [0, 1, 2, 3, 4].forEach(i => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0, now + i);
+      gain.gain.linearRampToValueAtTime(0.4, now + i + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i + 0.18);
+      osc.start(now + i);
+      osc.stop(now + i + 0.2);
+    });
+    // GO beep at t=5 — higher pitch, longer
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.connect(gain2); gain2.connect(ctx.destination);
+    osc2.frequency.value = 1320;
+    osc2.type = 'sine';
+    gain2.gain.setValueAtTime(0, now + 5);
+    gain2.gain.linearRampToValueAtTime(0.6, now + 5 + 0.01);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 5 + 0.4);
+    osc2.start(now + 5);
+    osc2.stop(now + 5 + 0.5);
+    return ctx;
+  } catch(e) { return null; }
+}
+
+function startPlay() {
+  if (playing) return;
+
+  const overlay = document.getElementById('countdownOverlay');
+  const numEl   = document.getElementById('countdownNum');
+  const labelEl = document.getElementById('countdownLabel');
+
+  overlay.classList.add('show');
+  numEl.textContent = '5';
+  labelEl.textContent = 'Switch to Spotify — press Play on GO!';
+
+  // Schedule ALL beeps right now using Web Audio clock
+  // They will fire even when tab is not focused
+  scheduleBeeps();
+
+  // Record the exact real-world time the GO beep will fire (5 seconds from now)
+  const goTime = Date.now() + 5000;
+
+  function updateCountdown() {
+    const remaining = goTime - Date.now();
+    const secs = Math.ceil(remaining / 1000);
+
+    if (remaining <= 0) {
+      overlay.classList.remove('show');
+      playing = true;
+      startOffset = 1.0;
+      startTime = goTime;
+      document.getElementById('playBtn').textContent = '⏸';
+      document.getElementById('hwGrid').classList.remove('paused');
+      userScrolling = false;
+      rafId = requestAnimationFrame(loop);
+      return;
+    }
+
+    if (secs <= 0) {
+      numEl.textContent = '▶';
+      labelEl.textContent = 'Press Play on Spotify NOW!';
+    } else {
+      numEl.textContent = secs;
+    }
+    requestAnimationFrame(updateCountdown);
+  }
+
+  requestAnimationFrame(updateCountdown);
+}
+
+function stopPlay() {
+  playing = false;
+  startOffset = getTime();
+  startTime = null;
+  if (rafId) cancelAnimationFrame(rafId);
+  document.getElementById('playBtn').textContent = '▶';
+  document.getElementById('hwGrid').classList.add('paused');
+}
+function togglePlay() { if (playing) stopPlay(); else startPlay(); }
+
+function doRestart() {
+  stopPlay();
+  startOffset = 0; currentLine = -1; lastBigChord = null;
+  combo = 0; score = 0; userScrolling = false;
+  document.getElementById('comboEl').textContent = '0';
+  document.getElementById('scoreEl').textContent = '000000';
+  document.getElementById('progFill').style.width = '0%';
+  document.getElementById('elapsed').textContent = '0:00';
+  document.getElementById('scrollStage').scrollTo({top:0, behavior:'smooth'});
+  document.querySelectorAll('.s-line').forEach(el => el.classList.remove('active','past'));
+  document.getElementById('tickerBig').textContent = '—';
+  document.getElementById('tickerSub').textContent = 'Press Play';
+  document.getElementById('tickerQueue').innerHTML = '';
+  drawMini(null); drawDiagram(null);
+}
+
+document.getElementById('playBtn').addEventListener('click', togglePlay);
+document.getElementById('restartBtn').addEventListener('click', doRestart);
+
+document.querySelectorAll('.sp-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const curT = getTime();
+    document.querySelectorAll('.sp-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    speed = parseFloat(btn.dataset.s);
+    if (playing) { startOffset = curT; startTime = Date.now(); }
+  });
+});
+
+document.getElementById('progWrap').addEventListener('click', e => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const frac = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  startOffset = frac * SONG.totalSeconds;
+  startTime = playing ? Date.now() : null;
+  currentLine = -1; lastBigChord = null; userScrolling = false;
+});
+
+// ══════════════════════════════════════════════
+//  CAPO MAPS
+// ══════════════════════════════════════════════
+const CAPO_MAPS = {
+  0:{
+    G:  {d:'G',  s:[3,2,0,0,0,3], l:'Major · Open G',        t:'open'},
+    F:  {d:'F',  s:[1,1,2,3,3,1], l:'Barre — try Capo 3!',   t:'barre'},
+    C:  {d:'C',  s:[-1,3,2,0,1,0],l:'Major · Open C',        t:'open'},
+    Am: {d:'Am', s:[-1,0,2,2,1,0],l:'Minor · Open Am',       t:'open'},
+    Gm: {d:'Gm', s:[3,5,5,3,3,3], l:'Barre — try Capo 3!',   t:'barre'},
+    Gm7:{d:'Gm7',s:[-1,-1,3,3,3,1],l:'Min7 · Partial barre', t:'barre'},
+  },
+  1:{
+    G:  {d:'F#', s:[2,4,4,3,2,2], l:'Major · Barre',t:'barre'},
+    F:  {d:'E',  s:[0,2,2,1,0,0], l:'Major · Open E',t:'open'},
+    C:  {d:'B',  s:[-1,2,4,4,4,2],l:'Major · Barre',t:'barre'},
+    Am: {d:'G#m',s:[4,6,6,4,4,4], l:'Minor · Barre',t:'barre'},
+    Gm: {d:'F#m',s:[2,4,4,2,2,2], l:'Minor · Barre',t:'barre'},
+    Gm7:{d:'F#m7',s:[2,4,2,2,2,2],l:'Min7',         t:'semi'},
+  },
+  2:{
+    G:  {d:'F',  s:[1,1,2,3,3,1], l:'Major · Barre F',t:'barre'},
+    F:  {d:'Eb', s:[0,2,2,1,0,0], l:'Open E shape',  t:'open'},
+    C:  {d:'Bb', s:[-1,1,3,3,3,1],l:'Barre',         t:'barre'},
+    Am: {d:'Gm', s:[3,5,5,3,3,3], l:'Minor · Barre', t:'barre'},
+    Gm: {d:'Fm', s:[1,3,3,1,1,1], l:'Minor · Barre', t:'barre'},
+    Gm7:{d:'Fm7',s:[1,3,1,1,1,1], l:'Min7',          t:'barre'},
+  },
+  3:{
+    G:  {d:'E',  s:[0,2,2,1,0,0], l:'Major · Open E ✓', t:'open'},
+    F:  {d:'D',  s:[-1,-1,0,2,3,2],l:'Major · Open D ✓',t:'open'},
+    C:  {d:'A',  s:[-1,0,2,2,2,0],l:'Major · Open A ✓', t:'open'},
+    Am: {d:'F#m',s:[-1,-1,4,2,2,2],l:'Minor · semi ✓',  t:'semi'},
+    Gm: {d:'Em', s:[0,2,2,0,0,0], l:'Minor · Open Em ✓',t:'open'},
+    Gm7:{d:'Em7',s:[0,2,0,0,0,0], l:'Minor 7 · Open ✓', t:'open'},
+  },
+  4:{
+    G:  {d:'Eb', s:[0,2,2,1,0,0], l:'Open E shape',  t:'open'},
+    F:  {d:'Db', s:[-1,-1,0,2,3,2],l:'Open D shape ✓',t:'open'},
+    C:  {d:'Ab', s:[-1,0,2,2,2,0],l:'Open A shape ✓',t:'open'},
+    Am: {d:'Fm', s:[-1,-1,3,1,1,1],l:'Partial barre', t:'semi'},
+    Gm: {d:'Ebm',s:[-1,-1,1,3,4,3],l:'Barre',        t:'barre'},
+    Gm7:{d:'Ebm7',s:[-1,-1,1,3,2,3],l:'Min7',        t:'barre'},
+  },
+  5:{
+    G:  {d:'D',  s:[-1,-1,0,2,3,2],l:'Major · Open D ✓', t:'open'},
+    F:  {d:'C',  s:[-1,3,2,0,1,0], l:'Major · Open C ✓', t:'open'},
+    C:  {d:'G',  s:[3,2,0,0,0,3],  l:'Major · Open G ✓', t:'open'},
+    Am: {d:'Em', s:[0,2,2,0,0,0],  l:'Minor · Open Em ✓',t:'open'},
+    Gm: {d:'Dm', s:[-1,-1,0,2,3,1],l:'Minor · Open Dm ✓',t:'open'},
+    Gm7:{d:'Dm7',s:[-1,-1,0,2,1,1],l:'Minor 7 · Open ✓', t:'open'},
+  },
+};
+
+const CAPO_TIPS = {
+  0:'<span class="star">No Capo</span> — Original key. F and Gm use barre chords.',
+  1:'<span class="star">Capo 1</span> — Slight key shift. Some barre shapes remain.',
+  2:'<span class="star">Capo 2</span> — Moderate shift. F becomes open E shape.',
+  3:'<span class="star">★ Capo 3 — Recommended!</span> <span class="hl">G→E, F→D, C→A, Gm→Em.</span> All beginner-friendly open chords.',
+  4:'<span class="star">Capo 4</span> — F→D and C→A open shapes. Very playable.',
+  5:'<span class="star">Capo 5</span> — <span class="hl">G→D, F→C, C→G, Gm→Dm.</span> Fully open chords!',
+};
+
+// ══════════════════════════════════════════════
+//  SONG DATA
+// ══════════════════════════════════════════════
+const SONG = {
+  totalSeconds: 214,
+  lines:[
+    {time:0,  section:'Intro',  chords:[],              lyrics:''},
+    {time:14, section:'Verse 1',chords:['G'],            lyrics:'The night that I met her, I was far from home'},
+    {time:19, section:'',       chords:['F','Gm7'],      lyrics:"But I found a little home in her eyes"},
+    {time:24, section:'',       chords:['G'],            lyrics:"I didn't know if I'd ever see her again"},
+    {time:29, section:'',       chords:['F','G'],        lyrics:"But I knew she'd changed my life"},
+    {time:35, section:'Verse 2',chords:['F','G'],        lyrics:"God's just the type that would cancel a flight"},
+    {time:40, section:'',       chords:['F','Gm7'],      lyrics:"So, forever wouldn't get away"},
+    {time:45, section:'',       chords:['F','G','Gm7'],  lyrics:"I guess it's true what they say about Him"},
+    {time:50, section:'',       chords:['F','G'],        lyrics:"How He works in mysterious ways"},
+    {time:56, section:'Chorus', chords:['F','C'],        lyrics:'I try to make the plans'},
+    {time:60, section:'',       chords:['G'],            lyrics:'But He makes the path'},
+    {time:63, section:'',       chords:['F','C'],        lyrics:"Never makes sense"},
+    {time:66, section:'',       chords:['Gm'],           lyrics:"'Til you see it in the past"},
+    {time:70, section:'',       chords:['F','C'],        lyrics:"Eyes wide open"},
+    {time:73, section:'',       chords:['Gm'],           lyrics:"And I didn't even know it"},
+    {time:77, section:'',       chords:['F','C','G'],    lyrics:"I was looking at a God moment"},
+    {time:82, section:'',       chords:['F','C','G'],    lyrics:"If it was all up to me, who knows what I'd miss"},
+    {time:87, section:'',       chords:['F','C','Gm'],   lyrics:"Trying to figure out which way I should pick"},
+    {time:92, section:'',       chords:['F','C','G','Gm'],lyrics:"So, I just let go and wait until He's showing me"},
+    {time:98, section:'',       chords:['F','C','G'],    lyrics:"One of those God moments"},
+    {time:102,section:'',       chords:['F','C','G'],    lyrics:"Yeah, one of those God moments"},
+    {time:108,section:'Verse 3',chords:['F','G'],        lyrics:"Pawn-shop guitar that Dad bought used"},
+    {time:113,section:'',       chords:['F','G'],        lyrics:"But he brought it home new to me"},
+    {time:118,section:'',       chords:['F','G'],        lyrics:"I didn't ask for it, didn't know how to play"},
+    {time:123,section:'',       chords:['F','G'],        lyrics:"And he'd never even heard me sing"},
+    {time:128,section:'',       chords:['F'],            lyrics:"Until I had it in my hands"},
+    {time:131,section:'',       chords:['G'],            lyrics:"Those songs and a band"},
+    {time:134,section:'',       chords:['F','G'],        lyrics:"Weren't even a thought in my head"},
+    {time:139,section:'',       chords:['F','G'],        lyrics:"I guess God knew what was coming down the road"},
+    {time:144,section:'',       chords:['F','G'],        lyrics:"And He just hadn't shown me yet"},
+    {time:148,section:'',       chords:[],               lyrics:"It makes you wonder what's coming up next"},
+    {time:153,section:'Chorus', chords:['F','C'],        lyrics:'I try to make the plans'},
+    {time:157,section:'',       chords:['G'],            lyrics:'But He makes the path'},
+    {time:160,section:'',       chords:['F','C'],        lyrics:"Never makes sense"},
+    {time:163,section:'',       chords:['Gm'],           lyrics:"'Til you see it in the past"},
+    {time:167,section:'',       chords:['F','C'],        lyrics:"Eyes wide open"},
+    {time:170,section:'',       chords:['Gm'],           lyrics:"And I didn't even know it"},
+    {time:174,section:'',       chords:['F','C','G'],    lyrics:"I was looking at a God moment"},
+    {time:179,section:'',       chords:['F','C','G'],    lyrics:"If it was all up to me, who knows what I'd miss"},
+    {time:184,section:'',       chords:['F','C','Gm'],   lyrics:"Trying to figure out which way I should pick"},
+    {time:189,section:'',       chords:['F','C','G','Gm'],lyrics:"So, I just let go and wait until He's showing me"},
+    {time:194,section:'',       chords:['F','C','G'],    lyrics:"One of those God moments"},
+    {time:198,section:'',       chords:['F','C','G'],    lyrics:"Yeah, one of those God moments"},
+    {time:204,section:'Outro',  chords:['F','C','G'],    lyrics:'(instrumental)'},
+    {time:210,section:'',       chords:['F','C','Gm'],   lyrics:''},
+  ]
+};
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let capo = 0;
+let playing = false;
+let speed = 1;
+let combo = 0, score = 0;
+let currentLine = -1;
+let lastBigChord = null;
+let rafId = null;
+let gemTimers = [];
+let userScrolling = false;
+
+const LC = ['#ff4d79','#5db8f5','#e8a84c','#5de8a0','#c97bea'];
+const LK = ['a','s','d','f','g'];
+
+function cd(orig) {
+  return (CAPO_MAPS[capo] || CAPO_MAPS[0])[orig] || {d:orig, s:[], l:'Unknown', t:'open'};
+}
+
+// ══════════════════════════════════════════════
+//  CAPO
+// ══════════════════════════════════════════════
+function applyCapo(c) {
+  capo = c;
+  document.getElementById('infoCapo').textContent = c === 0 ? 'None' : 'Fret ' + c;
+  document.getElementById('keyBadge').textContent = c === 0 ? 'No Capo' : 'Capo ' + c;
+  document.getElementById('capoTip').innerHTML = CAPO_TIPS[c];
+  buildTrack();
+  if (currentLine >= 0) updateAll(currentLine);
+}
+
+document.querySelectorAll('.capo-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.capo-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyCapo(parseInt(btn.dataset.capo));
+  });
+});
+
+// ══════════════════════════════════════════════
+//  CHORD DIAGRAM (sidebar)
+// ══════════════════════════════════════════════
+function drawDiagram(orig) {
+  const n = document.getElementById('chordName');
+  const s = document.getElementById('chordSub');
+  const a = document.getElementById('fretArea');
+  if (!orig) { n.textContent='—'; s.textContent='Rest'; a.innerHTML=''; return; }
+  const c = cd(orig);
+  n.textContent = c.d;
+  const col = c.t==='barre' ? '#ff4d79' : c.t==='open' ? 'var(--green)' : 'var(--accent)';
+  const lbl = c.t==='barre' ? '⚠ Barre' : c.t==='open' ? '✓ Open' : '~ Semi-open';
+  s.innerHTML = `<span style="color:${col}">${lbl}</span> — ${c.l.replace(' ✓','')}`;
+  const shape = c.s;
+  if (!shape || !shape.length) { a.innerHTML=''; return; }
+  const maxF = Math.max(...shape.filter(f => f > 0), 3);
+  let html = '';
+  if (capo > 0) html += `<div class="capo-marker"><span>CAPO ${capo}</span></div>`;
+  for (let fr = 1; fr <= maxF; fr++) {
+    html += '<div class="fr-row">';
+    for (let st = 0; st < 6; st++) {
+      html += '<div class="fr-cell">';
+      if (shape[st]===fr) html += '<div class="dot-f"></div>';
+      else if (shape[st]===0 && fr===1) html += '<div class="dot-o"></div>';
+      else if (shape[st]===-1 && fr===1) html += '<span class="dot-x">✕</span>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  a.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════
+//  MINI FRETBOARD (ticker)
+// ══════════════════════════════════════════════
+function drawMini(orig) {
+  const el = document.getElementById('tfbFrets');
+  if (!orig) { el.innerHTML=''; return; }
+  const c = cd(orig);
+  const shape = c.s;
+  if (!shape || !shape.length) { el.innerHTML=''; return; }
+  const maxF = Math.max(...shape.filter(f => f > 0), 3);
+  let html = '';
+  for (let fr = 1; fr <= maxF; fr++) {
+    html += '<div class="tfb-row">';
+    for (let st = 0; st < 6; st++) {
+      html += '<div class="tfb-cell">';
+      if (shape[st]===fr) html += '<div class="tfb-dot"></div>';
+      else if (shape[st]===0 && fr===1) html += '<div class="tfb-open"></div>';
+      else if (shape[st]===-1 && fr===1) html += '<span class="tfb-mute">✕</span>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════
+//  TICKER
+// ══════════════════════════════════════════════
+function updateTicker(idx) {
+  const all = [];
+  for (let i = idx; i < SONG.lines.length && all.length < 8; i++)
+    SONG.lines[i].chords.forEach(c => { if (all.length < 8) all.push(c); });
+
+  const cur = all[0] || null;
+  const next = all.slice(1, 5);
+  const bigEl = document.getElementById('tickerBig');
+  const subEl = document.getElementById('tickerSub');
+  const box   = document.getElementById('tickerNow');
+
+  if (cur) {
+    const c = cd(cur);
+    if (c.d !== lastBigChord) {
+      bigEl.style.opacity = '0'; bigEl.style.transform = 'scale(1.25)';
+      setTimeout(() => {
+        bigEl.textContent = c.d;
+        bigEl.style.transition = 'opacity 0.15s,transform 0.15s';
+        bigEl.style.opacity = '1'; bigEl.style.transform = 'scale(1)';
+      }, 60);
+      subEl.textContent = c.l.replace(' ✓','');
+      box.classList.remove('popping'); void box.offsetWidth; box.classList.add('popping');
+      lastBigChord = c.d;
+      drawMini(cur);
+      drawDiagram(cur);
+    }
+  } else {
+    bigEl.textContent = '—';
+    subEl.textContent = SONG.lines[idx]?.section || 'Rest';
+    lastBigChord = null;
+    drawMini(null); drawDiagram(null);
+  }
+
+  const q = document.getElementById('tickerQueue'); q.innerHTML = '';
+  next.forEach((ch, i) => {
+    const c = cd(ch);
+    const card = document.createElement('div');
+    card.className = `t-card n${i+1}`;
+    card.innerHTML = `<span class="t-card-name">${c.d}</span><span class="t-card-sub">${i===0?'NEXT':''}</span>`;
+    q.appendChild(card);
+  });
+}
+
+function updateUpcoming(idx) {
+  const list = document.getElementById('upList'); list.innerHTML = '';
+  const up = [];
+  for (let i = idx+1; i < SONG.lines.length && up.length < 4; i++)
+    SONG.lines[i].chords.forEach(c => { if (up.length < 4) up.push(c); });
+  if (!up.length) { list.innerHTML='<div style="font-size:10px;color:var(--muted);padding:6px">No more chords</div>'; return; }
+  up.forEach((ch, i) => {
+    const c = cd(ch);
+    const d = document.createElement('div');
+    d.className = 'up-item' + (i===0 ? ' is-next' : '');
+    d.innerHTML = `<span class="up-name" style="color:${i===0?'var(--accent)':'var(--text)'}">${c.d}</span><span class="up-tag">${i===0?'NEXT ▶':''}</span>`;
+    list.appendChild(d);
+  });
+}
+
+function updateAll(idx) { updateTicker(idx); updateUpcoming(idx); }
+
+// ══════════════════════════════════════════════
+//  BUILD TRACK
+// ══════════════════════════════════════════════
+function buildTrack() {
+  const track = document.getElementById('scrollTrack'); track.innerHTML = '';
+  SONG.lines.forEach((line, i) => {
+    if (line.section && line.section !== '') {
+      const sec = document.createElement('div');
+      sec.className = 's-line section-marker'; sec.id = 'sec-'+i;
+      sec.textContent = '— ' + line.section + ' —';
+      track.appendChild(sec);
+    }
+    const div = document.createElement('div');
+    div.className = 's-line'; div.id = 'line-'+i;
+    if (line.chords.length > 0) {
+      const cr = document.createElement('div'); cr.className = 'chord-row';
+      line.chords.forEach(ch => {
+        const c = cd(ch);
+        const t = document.createElement('span');
+        t.className = 'ch-tag'; t.dataset.orig = ch; t.textContent = c.d;
+        cr.appendChild(t);
+      });
+      div.appendChild(cr);
+    } else {
+      const sp = document.createElement('div'); sp.style.height='22px'; div.appendChild(sp);
+    }
+    if (line.lyrics) {
+      const lr = document.createElement('div'); lr.className='lyric-line'; lr.textContent=line.lyrics; div.appendChild(lr);
+    }
+    track.appendChild(div);
+  });
+  const end = document.createElement('div'); end.style.height='300px'; track.appendChild(end);
+  if (currentLine >= 0) scrollToLine(currentLine);
+}
+
+// ══════════════════════════════════════════════
+//  SCROLL  — native overflow scroll, no transform
+// ══════════════════════════════════════════════
+function scrollToLine(idx) {
+  const stage = document.getElementById('scrollStage');
+
+  // Mark active / past
+  document.querySelectorAll('.s-line').forEach(el => el.classList.remove('active','past'));
+  for (let i = 0; i < idx; i++) {
+    const el = document.getElementById('line-'+i);
+    if (el) el.classList.add('past');
+  }
+  const el = document.getElementById('line-'+idx);
+  if (el) {
+    el.classList.add('active');
+    el.querySelectorAll('.ch-tag').forEach((t,i) => t.classList.toggle('ch-active', i===0));
+
+    // Only auto-scroll if user hasn't manually scrolled away
+    if (!userScrolling) {
+      const target = el.offsetTop - stage.clientHeight * 0.38;
+      stage.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+    }
+  }
+  updateAll(idx);
+}
+
+// ══════════════════════════════════════════════
+//  BACK TO TOP + FREE SCROLL DETECTION
+// ══════════════════════════════════════════════
+const scrollStage = document.getElementById('scrollStage');
+const backToTopBtn = document.getElementById('backToTop');
+let scrollTimeout = null;
+
+scrollStage.addEventListener('scroll', () => {
+  const scrolled = scrollStage.scrollTop > 180;
+  backToTopBtn.classList.toggle('visible', scrolled);
+
+  // Mark user as manually scrolling — pause auto-scroll for 3s
+  userScrolling = true;
+  clearTimeout(scrollTimeout);
+  scrollTimeout = setTimeout(() => { userScrolling = false; }, 3000);
+});
+
+backToTopBtn.addEventListener('click', () => {
+  scrollStage.scrollTo({ top: 0, behavior: 'smooth' });
+  userScrolling = false;
+  // Re-snap to current line after scroll
+  setTimeout(() => {
+    if (currentLine >= 0) {
+      userScrolling = false;
+      scrollToLine(currentLine);
+    }
+  }, 700);
+});
+
+// ══════════════════════════════════════════════
+//  GEMS
+// ══════════════════════════════════════════════
+function spawnGem(lane) {
+  const layer = document.getElementById('notesLayer');
+  const gem = document.createElement('div'); gem.className='gem';
+  gem.style.left = `calc(${lane*20+1}% + 4px)`;
+  gem.style.color = LC[lane]; gem.style.borderColor = LC[lane];
+  gem.style.background = 'rgba(0,0,0,0.75)';
+  gem.style.boxShadow = `0 0 12px ${LC[lane]}`;
+  gem.style.animationDuration = (1.0/speed)+'s';
+  gem.textContent = ['E','A','D','G','B'][lane];
+  layer.appendChild(gem);
+  setTimeout(() => gem.remove(), 1100/speed);
+}
+function scheduleGems(line) {
+  gemTimers.forEach(clearTimeout); gemTimers=[];
+  if (!line.chords.length) return;
+  line.chords.forEach((ch,i) => { gemTimers.push(setTimeout(()=>spawnGem(i%5), i*240)); });
+}
+
+// ══════════════════════════════════════════════
+//  HIT BUTTONS
+// ══════════════════════════════════════════════
+function registerHit(lane) {
+  combo++; score += 100 * Math.min(combo, 10);
+  document.getElementById('comboEl').textContent = combo;
+  document.getElementById('scoreEl').textContent = String(score).padStart(6,'0');
+  const fl = document.getElementById('flashOverlay');
+  fl.style.background = LC[lane]; fl.classList.remove('pop'); void fl.offsetWidth; fl.classList.add('pop');
+}
+
+document.querySelectorAll('.hbtn').forEach(btn => {
+  btn.addEventListener('pointerdown', () => {
+    const i = parseInt(btn.dataset.i);
+    btn.classList.add('lit'); registerHit(i);
+    setTimeout(() => btn.classList.remove('lit'), 110);
+  });
+});
+document.addEventListener('keydown', e => {
+  const i = LK.indexOf(e.key.toLowerCase());
+  if (i >= 0) {
+    const btns = document.querySelectorAll('.hbtn');
+    btns[i].classList.add('lit'); registerHit(i);
+    setTimeout(() => btns[i].classList.remove('lit'), 110);
+  }
+  if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+});
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+applyCapo(0);
+buildTrack();
+document.getElementById('duration').textContent = fmt(SONG.totalSeconds);
+</script>
+</body>
+</html>
