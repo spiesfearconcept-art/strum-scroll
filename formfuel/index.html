@@ -1,1 +1,547 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FormFuel — Your Body. Your Plan.</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#110C07;--surf:#1C1209;--card:#241810;--card2:#2C1E12;--coral:#C4523A;--gold:#B8924A;--peach:#D4A882;--cream:#F0E8DC;--muted:#8A7A68;--border:#2E2018;--border2:#3A2618;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:#110C07;color:#F0E8DC;font-family:'DM Sans',sans-serif;}
+.ff-root{min-height:100vh;background:var(--bg);color:var(--cream);font-family:'DM Sans',sans-serif;position:relative;overflow-x:hidden;}
+.ff-root::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 55% 40% at 15% 10%,rgba(196,82,58,.07) 0%,transparent 60%),radial-gradient(ellipse 45% 50% at 85% 85%,rgba(184,146,74,.06) 0%,transparent 60%);pointer-events:none;z-index:0;}
+.ff-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 32px;background:rgba(17,12,7,.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+.ff-nav-logo{display:flex;align-items:center;gap:12px;cursor:pointer;}
+.ff-nav-wordmark{display:flex;flex-direction:column;line-height:1;}
+.ff-nav-form{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.08em;color:var(--cream);line-height:.95;}
+.ff-nav-fuel{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.08em;background:linear-gradient(135deg,#C4523A,#B8924A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:.95;}
+.ff-page{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:96px 24px 80px;}
+.ff-progress{display:flex;gap:5px;margin-bottom:44px;}
+.ff-prog-seg{height:2px;flex:1;border-radius:2px;background:var(--border2);transition:background .4s;}
+.ff-prog-seg.done{background:linear-gradient(90deg,#C4523A,#B8924A);}
+.ff-eyebrow{font-family:'Cormorant Garamond',serif;font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:block;}
+.ff-h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.2rem,5vw,3.4rem);letter-spacing:.04em;line-height:.95;margin-bottom:16px;}
+.ff-grad{background:linear-gradient(135deg,#C4523A,#B8924A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ff-sub{font-size:1rem;color:var(--muted);line-height:1.7;font-weight:300;margin-bottom:36px;max-width:560px;}
+.ff-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;margin-bottom:16px;}
+.ff-label{font-family:'Cormorant Garamond',serif;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;display:block;font-weight:600;}
+.ff-input{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:12px;padding:13px 16px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none;}
+.ff-input::placeholder{color:var(--muted);}
+.ff-input:focus{border-color:#C4523A;}
+.ff-input option{background:#1C1209;}
+.ff-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:500px){.ff-grid2{grid-template-columns:1fr;}}
+.ff-choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:8px;}
+.ff-choice{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:18px 16px;cursor:pointer;transition:all .18s;text-align:left;}
+.ff-choice:hover{border-color:#C4523A;}
+.ff-choice.sel{border-color:#C4523A;background:rgba(196,82,58,.08);}
+.ff-choice-icon{font-size:1.6rem;margin-bottom:8px;display:block;}
+.ff-choice-title{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.05em;margin-bottom:4px;color:var(--cream);}
+.ff-choice-desc{font-size:.76rem;color:var(--muted);line-height:1.4;font-weight:300;}
+.ff-check-row{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;}
+.ff-check-row:last-child{border-bottom:none;}
+.ff-checkbox{width:19px;height:19px;flex-shrink:0;margin-top:2px;border-radius:5px;border:1.5px solid var(--border2);background:transparent;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.ff-checkbox.on{background:linear-gradient(135deg,#C4523A,#B8924A);border-color:transparent;}
+.ff-checkbox.on::after{content:'✓';font-size:.65rem;color:#110C07;font-weight:700;}
+.ff-radio-dot{width:18px;height:18px;flex-shrink:0;margin-top:3px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;transition:all .15s;position:relative;}
+.ff-radio-dot.on{border-color:#C4523A;}
+.ff-radio-dot.on::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#C4523A,#B8924A);}
+.ff-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#C4523A,#B8924A);color:#110C07;border:none;border-radius:12px;padding:15px 30px;font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:.08em;cursor:pointer;transition:opacity .2s,transform .15s;box-shadow:0 4px 24px rgba(196,82,58,.25);}
+.ff-btn:hover{opacity:.9;transform:translateY(-2px);}
+.ff-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.ff-btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--border2);box-shadow:none;}
+.ff-btn-ghost:hover{color:var(--cream);opacity:1;transform:none;box-shadow:none;}
+.ff-btn-row{display:flex;gap:10px;margin-top:32px;flex-wrap:wrap;}
+.ff-tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600;font-family:'Cormorant Garamond',serif;background:rgba(196,82,58,.12);color:var(--peach);border:1px solid rgba(196,82,58,.2);}
+.ff-loading{text-align:center;padding:80px 0;}
+.ff-spinner{width:52px;height:52px;border-radius:50%;border:2px solid rgba(196,82,58,.15);border-top-color:#C4523A;animation:spin .85s linear infinite;margin:0 auto 24px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ff-load-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.06em;color:var(--cream);margin-bottom:8px;}
+.ff-load-sub{font-size:.85rem;color:var(--muted);animation:pulse 1.6s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+.ff-tabs{display:flex;gap:3px;background:var(--surf);border:1px solid var(--border);border-radius:14px;padding:4px;margin-bottom:28px;flex-wrap:wrap;}
+.ff-tab{flex:1;min-width:90px;text-align:center;padding:10px 12px;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.06em;cursor:pointer;color:var(--muted);transition:all .2s;border:none;background:transparent;}
+.ff-tab.on{background:var(--card2);color:var(--peach);}
+.ff-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:20px;}
+.ff-stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;}
+.ff-stat-val{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;background:linear-gradient(135deg,#C4523A,#B8924A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ff-stat-label{font-size:.68rem;color:var(--muted);margin-top:3px;letter-spacing:.06em;}
+.ff-stat-sub{font-size:.62rem;color:rgba(196,82,58,.6);margin-top:2px;}
+.ff-section-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.08em;margin-bottom:14px;color:var(--peach);}
+.ff-insight-row{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.88rem;color:rgba(240,232,220,.75);line-height:1.55;}
+.ff-insight-row:last-child{border-bottom:none;}
+.ff-insight-num{color:#C4523A;font-family:'Bebas Neue',sans-serif;font-size:1rem;flex-shrink:0;}
+.ff-meal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:12px;}
+.ff-meal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;flex-wrap:wrap;gap:8px;}
+.ff-meal-name{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.05em;}
+.ff-meal-label{font-size:.7rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-family:'Cormorant Garamond',serif;margin-bottom:2px;}
+.ff-meal-desc{font-size:.83rem;color:var(--muted);margin-bottom:12px;font-weight:300;line-height:1.5;}
+.ff-recipe-step{display:flex;gap:10px;font-size:.82rem;color:rgba(240,232,220,.7);margin-bottom:6px;line-height:1.5;}
+.ff-step-num{color:#B8924A;font-family:'Bebas Neue',sans-serif;font-size:.95rem;flex-shrink:0;}
+.ff-ing-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.ff-ing{background:rgba(255,255,255,.04);border-radius:8px;padding:4px 10px;font-size:.76rem;color:rgba(240,232,220,.65);}
+.ff-ing-cost{color:rgba(184,146,74,.7);margin-left:4px;}
+.ff-budget-bar{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px 24px;margin-bottom:16px;}
+.ff-budget-val{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;background:linear-gradient(135deg,#C4523A,#B8924A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ff-grocery-cat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;}
+.ff-grocery-cat-title{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.1em;color:var(--gold);margin-bottom:12px;}
+.ff-grocery-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.88rem;}
+.ff-grocery-row:last-child{border-bottom:none;}
+.ff-grocery-qty{font-size:.74rem;color:var(--muted);margin-top:2px;}
+.ff-grocery-price{font-family:'Bebas Neue',sans-serif;color:var(--peach);font-size:.95rem;flex-shrink:0;margin-left:12px;}
+.ff-workout-day{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;}
+.ff-day-label{font-family:'Bebas Neue',sans-serif;letter-spacing:.12em;font-size:.85rem;color:#C4523A;margin-bottom:4px;}
+.ff-day-focus{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:.04em;color:var(--cream);margin-bottom:12px;}
+.ff-ex-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.ff-ex-row:last-child{border-bottom:none;}
+.ff-ex-name{font-size:.9rem;font-weight:500;}
+.ff-ex-note{font-size:.74rem;color:var(--muted);font-weight:300;margin-top:2px;}
+.ff-ex-sets{font-family:'Bebas Neue',sans-serif;font-size:.95rem;color:var(--peach);flex-shrink:0;margin-left:12px;text-align:right;}
+.ff-ex-rest{font-size:.7rem;color:var(--muted);margin-top:2px;}
+.ff-tip-row{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.88rem;color:rgba(240,232,220,.75);line-height:1.5;}
+.ff-tip-row:last-child{border-bottom:none;}
+.ff-tip-arrow{color:#B8924A;flex-shrink:0;}
+.ff-disclaimer{font-size:.73rem;color:rgba(138,122,104,.6);margin-top:32px;line-height:1.7;padding:16px;border:1px solid var(--border);border-radius:12px;}
+.ff-hero{padding:48px 0 32px;}
+.ff-hero-emblem{display:flex;align-items:center;gap:16px;margin-bottom:40px;}
+.ff-features{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin:32px 0 44px;}
+.ff-feature{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 14px;}
+.ff-feature-icon{font-size:1.4rem;margin-bottom:8px;}
+.ff-feature-title{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.06em;margin-bottom:4px;color:var(--cream);}
+.ff-feature-desc{font-size:.73rem;color:var(--muted);line-height:1.4;font-weight:300;}
+.ff-divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:16px 0;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.ff-fadein{animation:fadeUp .5s ease both;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const e = React.createElement;
+const { useState } = React;
+ 
+const BODY_TYPES = [
+  {id:"ectomorph",icon:"🏃",title:"Ectomorph",desc:"Lean & long, difficulty gaining mass, fast metabolism"},
+  {id:"mesomorph",icon:"💪",title:"Mesomorph",desc:"Athletic build, gains muscle easily, moderate metabolism"},
+  {id:"endomorph",icon:"🏋️",title:"Endomorph",desc:"Stocky build, gains fat easily, slow metabolism"},
+  {id:"ecto-meso",icon:"⚡",title:"Ecto-Meso Hybrid",desc:"Lean with some muscle, moderate-fast metabolism"},
+  {id:"endo-meso",icon:"🔥",title:"Endo-Meso Hybrid",desc:"Muscular but carries more fat, slower metabolism"},
+  {id:"unsure",icon:"🤔",title:"Not Sure",desc:"Describe your body and let AI decide"},
+];
+const HEALTH_CONDITIONS = [
+  "Type 2 Diabetes","High Blood Pressure","High Cholesterol","Thyroid Issues","PCOS",
+  "Celiac Disease / Gluten Intolerance","Lactose Intolerance","Kidney Disease","Heart Disease",
+  "Arthritis / Joint Issues","IBS / Digestive Issues","Food Allergies","None of the above",
+];
+const GOALS = [
+  {id:"lose-fat",icon:"📉",title:"Lose Fat",desc:"Reduce body fat while preserving muscle"},
+  {id:"build-muscle",icon:"💪",title:"Build Muscle",desc:"Gain lean mass and strength"},
+  {id:"recomp",icon:"⚖️",title:"Body Recomp",desc:"Lose fat and build muscle simultaneously"},
+  {id:"endurance",icon:"🏃",title:"Endurance",desc:"Improve cardiovascular fitness and stamina"},
+  {id:"maintain",icon:"🎯",title:"Maintain",desc:"Keep current physique, improve health markers"},
+  {id:"athletic",icon:"🏆",title:"Athletic Performance",desc:"Sport-specific strength and conditioning"},
+];
+const ACTIVITY_LEVELS = [
+  {id:"sedentary",label:"Sedentary",desc:"Desk job, little movement"},
+  {id:"light",label:"Lightly Active",desc:"1–2 workouts/week"},
+  {id:"moderate",label:"Moderately Active",desc:"3–4 workouts/week"},
+  {id:"very",label:"Very Active",desc:"5–6 workouts/week"},
+  {id:"athlete",label:"Athlete",desc:"Daily intense training"},
+];
+const DIET_PREFS = ["No Restriction","Vegetarian","Vegan","Pescatarian","Keto","Paleo","Mediterranean","Halal","Kosher"];
+const BLOOD_TYPES = ["A+","A-","B+","B-","AB+","AB-","O+","O-","Unknown"];
+ 
+function Emblem({size}) {
+  size = size || 54;
+  const id = "e"+size;
+  return e("svg",{width:size,height:size,viewBox:"0 0 90 90",fill:"none"},
+    e("defs",null,
+      e("linearGradient",{id:"sg"+id,x1:"0",y1:"0",x2:"90",y2:"90",gradientUnits:"userSpaceOnUse"},
+        e("stop",{offset:"0%",stopColor:"#C4523A"}),e("stop",{offset:"100%",stopColor:"#B8924A"})),
+      e("linearGradient",{id:"fg"+id,x1:"30",y1:"10",x2:"60",y2:"80",gradientUnits:"userSpaceOnUse"},
+        e("stop",{offset:"0%",stopColor:"#F0E8DC"}),e("stop",{offset:"100%",stopColor:"#D4A882"})),
+      e("linearGradient",{id:"ag"+id,x1:"0",y1:"0",x2:"90",y2:"0",gradientUnits:"userSpaceOnUse"},
+        e("stop",{offset:"0%",stopColor:"#C4523A",stopOpacity:"0"}),
+        e("stop",{offset:"50%",stopColor:"#B8924A"}),
+        e("stop",{offset:"100%",stopColor:"#C4523A",stopOpacity:"0"}))
+    ),
+    e("path",{d:"M45 4 L80 23 L80 67 L45 86 L10 67 L10 23 Z",fill:"url(#sg"+id+")",opacity:".14"}),
+    e("path",{d:"M45 4 L80 23 L80 67 L45 86 L10 67 L10 23 Z",fill:"none",stroke:"url(#sg"+id+")",strokeWidth:"1.5"}),
+    e("path",{d:"M45 14 L72 29.5 L72 60.5 L45 76 L18 60.5 L18 29.5 Z",fill:"none",stroke:"url(#ag"+id+")",strokeWidth:".5",opacity:".4"}),
+    e("circle",{cx:"45",cy:"25",r:"6",fill:"url(#fg"+id+")"}),
+    e("path",{d:"M38 33 Q34 38 35 46 L38 46 L37 56 L43 56 L45 46 L47 56 L53 56 L52 46 L55 46 Q56 38 52 33 Z",fill:"url(#fg"+id+")"}),
+    e("path",{d:"M38 35 L28 28 L26 31 L36 39 Z",fill:"url(#fg"+id+")"}),
+    e("path",{d:"M52 35 L62 28 L64 31 L54 39 Z",fill:"url(#fg"+id+")"}),
+    e("path",{d:"M40 56 L37 70 L41 70 L45 59 L49 70 L53 70 L50 56 Z",fill:"url(#fg"+id+")"}),
+    e("line",{x1:"22",y1:"78",x2:"68",y2:"78",stroke:"url(#ag"+id+")",strokeWidth:"1",opacity:".6"})
+  );
+}
+ 
+function App() {
+  const [step,setStep] = useState(0);
+  const [form,setForm] = useState({name:"",age:"",weight:"",weightUnit:"lbs",height:"",heightUnit:"ft",bloodType:"",sex:"",bodyType:"",healthConditions:[],otherConditions:"",goal:"",activityLevel:"",dietPref:"No Restriction",budget:"",city:"",state:"",weeks:"4"});
+  const [tab,setTab] = useState("overview");
+  const [result,setResult] = useState(null);
+  const [loadMsg,setLoadMsg] = useState("Analyzing your profile…");
+ 
+  const setF = (k,v) => setForm(f => ({...f,[k]:v}));
+  const toggleCond = (c) => {
+    if(c==="None of the above"){setF("healthConditions",["None of the above"]);return;}
+    setForm(f => {
+      const arr = f.healthConditions.filter(x=>x!=="None of the above");
+      return {...f, healthConditions: arr.includes(c)?arr.filter(x=>x!==c):[...arr,c]};
+    });
+  };
+ 
+  const buildPrompt = () => `You are an elite certified nutritionist, personal trainer, and registered dietitian. Create a HIGHLY personalized health plan for this exact profile:
+Name: ${form.name||"User"} | Age: ${form.age} | Sex: ${form.sex}
+Weight: ${form.weight} ${form.weightUnit} | Height: ${form.height} ${form.heightUnit}
+Blood Type: ${form.bloodType} | Body Type: ${form.bodyType}
+Health Conditions: ${form.healthConditions.join(", ")||"None"}
+${form.otherConditions?"Other: "+form.otherConditions:""}
+Primary Goal: ${form.goal} | Activity: ${form.activityLevel} | Diet: ${form.dietPref}
+Budget: $${form.budget}/week | Location: ${form.city}, ${form.state} | Duration: ${form.weeks} weeks
+ 
+Return ONLY valid JSON no markdown:
+{"bmi":"22.4","bmiCategory":"Normal Weight","dailyCalories":"2150","proteinG":"168","carbsG":"215","fatG":"72","bodyTypeAnalysis":"2-3 sentence analysis","keyInsights":["insight 1","insight 2","insight 3"],"dietNotes":"2-3 sentences","mealPlan":[{"meal":"Breakfast","name":"Name","calories":"430","protein":"36g","description":"desc","recipe":["Step 1","Step 2","Step 3"],"ingredients":[{"item":"Eggs","qty":"3 large","estCost":"$0.75"}]},{"meal":"Mid-Morning Snack","name":"Name","calories":"200","protein":"10g","description":"desc","recipe":[],"ingredients":[{"item":"item","qty":"qty","estCost":"$0.00"}]},{"meal":"Lunch","name":"Name","calories":"550","protein":"45g","description":"desc","recipe":["Step 1","Step 2"],"ingredients":[{"item":"item","qty":"qty","estCost":"$0.00"}]},{"meal":"Afternoon Snack","name":"Name","calories":"200","protein":"12g","description":"desc","recipe":[],"ingredients":[{"item":"item","qty":"qty","estCost":"$0.00"}]},{"meal":"Dinner","name":"Name","calories":"600","protein":"50g","description":"desc","recipe":["Step 1","Step 2","Step 3"],"ingredients":[{"item":"item","qty":"qty","estCost":"$0.00"}]}],"groceryList":[{"category":"Proteins","items":[{"name":"Chicken Breast","qty":"3 lbs","estCost":"$11.99"}]},{"category":"Produce","items":[{"name":"Spinach","qty":"5 oz bag","estCost":"$2.49"}]},{"category":"Dairy & Alternatives","items":[{"name":"item","qty":"qty","estCost":"$0.00"}]},{"category":"Grains & Pantry","items":[{"name":"item","qty":"qty","estCost":"$0.00"}]},{"category":"Fats & Oils","items":[{"name":"item","qty":"qty","estCost":"$0.00"}]}],"estimatedWeeklyCost":"$XX.XX","workoutPlan":[{"day":"Monday","focus":"Upper Body","duration":"45 min","exercises":[{"name":"Bench Press","sets":"4","reps":"8","rest":"90s","notes":"tip"}]},{"day":"Tuesday","focus":"Lower Body","duration":"45 min","exercises":[{"name":"Squats","sets":"4","reps":"10","rest":"90s","notes":"tip"}]},{"day":"Wednesday","focus":"Active Recovery","duration":"30 min","exercises":[{"name":"Light Walk","sets":"1","reps":"30 min","rest":"-","notes":""}]},{"day":"Thursday","focus":"Push","duration":"45 min","exercises":[{"name":"Overhead Press","sets":"3","reps":"10","rest":"60s","notes":"tip"}]},{"day":"Friday","focus":"Pull","duration":"45 min","exercises":[{"name":"Pull-ups","sets":"3","reps":"8","rest":"60s","notes":"tip"}]},{"day":"Saturday","focus":"Cardio","duration":"30 min","exercises":[{"name":"Steady State Cardio","sets":"1","reps":"30 min","rest":"-","notes":""}]},{"day":"Sunday","focus":"Rest","duration":"-","exercises":[]}],"supplementSuggestions":["Whey Protein","Vitamin D","Omega-3"],"progressTips":["Tip 1","Tip 2","Tip 3"]}`;
+ 
+  const generate = async () => {
+    setStep(6);
+    const msgs = ["Analyzing your biology…","Calculating your macros…","Crafting personalized meals…","Building your workout split…","Estimating grocery costs…","Putting it all together…"];
+    let i = 0; setLoadMsg(msgs[0]);
+    const iv = setInterval(()=>{i=(i+1)%msgs.length;setLoadMsg(msgs[i]);},2200);
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:4000,messages:[{role:"user",content:buildPrompt()}]})
+      });
+      const data = await res.json();
+      const txt = (data.content||[]).map(b=>b.text||"").join("");
+      const clean = txt.replace(/```json|```/g,"").trim();
+      setResult(JSON.parse(clean)); setStep(7);
+    } catch(err) {
+      setResult({error:true}); setStep(7);
+    } finally { clearInterval(iv); }
+  };
+ 
+  const reset = () => { setStep(0);setResult(null);setTab("overview");setForm({name:"",age:"",weight:"",weightUnit:"lbs",height:"",heightUnit:"ft",bloodType:"",sex:"",bodyType:"",healthConditions:[],otherConditions:"",goal:"",activityLevel:"",dietPref:"No Restriction",budget:"",city:"",state:"",weeks:"4"}); };
+ 
+  // ── helpers ──
+  const inp = (lbl,k,opts={}) => e("div",null,
+    e("label",{className:"ff-label"},lbl),
+    e("input",{className:"ff-input",placeholder:opts.placeholder||"",type:opts.type||"text",value:form[k],onChange:ev=>setF(k,ev.target.value),...(opts.style?{style:opts.style}:{})})
+  );
+  const sel = (lbl,k,options) => e("div",null,
+    e("label",{className:"ff-label"},lbl),
+    e("select",{className:"ff-input",value:form[k],onChange:ev=>setF(k,ev.target.value)},
+      options.map(o=>e("option",{key:o.v||o,value:o.v||o},o.l||o))
+    )
+  );
+ 
+  const segs = [0,1,2,3,4];
+ 
+  return e("div",{className:"ff-root"},
+    // NAV
+    e("nav",{className:"ff-nav"},
+      e("div",{className:"ff-nav-logo",onClick:reset},
+        e(Emblem,{size:38}),
+        e("div",{className:"ff-nav-wordmark"},
+          e("span",{className:"ff-nav-form"},"FORM"),
+          e("span",{className:"ff-nav-fuel"},"FUEL")
+        )
+      ),
+      step>0&&step<7 ? e("span",{style:{fontSize:".75rem",color:"var(--muted)",fontFamily:"'Cormorant Garamond',serif",letterSpacing:".12em"}},`STEP ${step} OF 5`) : null
+    ),
+ 
+    e("div",{className:"ff-page"},
+      // PROGRESS
+      step>0&&step<7 ? e("div",{className:"ff-progress"}, segs.map((_,i)=>e("div",{key:i,className:"ff-prog-seg"+(i<step?" done":"")}))) : null,
+ 
+      // ── WELCOME ──
+      step===0 && e("div",{className:"ff-hero ff-fadein"},
+        e("div",{className:"ff-hero-emblem"},
+          e(Emblem,{size:72}),
+          e("div",null,
+            e("div",{style:{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(3rem,8vw,5rem)",letterSpacing:".04em",lineHeight:.9}},
+              e("span",{style:{color:"var(--cream)"}},"FORM"),
+              e("span",{className:"ff-grad"},"FUEL")
+            ),
+            e("div",{style:{fontFamily:"'Cormorant Garamond',serif",fontSize:".8rem",letterSpacing:".2em",color:"var(--muted)",marginTop:6,textTransform:"uppercase"}},"Your body. Your plan.")
+          )
+        ),
+        e("p",{className:"ff-sub"},"AI-powered nutrition and fitness built around your exact biology — body type, health conditions, budget, and local market prices. No templates. No guesswork."),
+        e("div",{className:"ff-features"},
+          [["🧬","Body Analysis","Blood type, somatotype & health-condition aware"],
+           ["🍽️","Meal Plans","5 curated meals/day with full recipes"],
+           ["🛒","Grocery Lists","Itemized shopping list with cost estimates"],
+           ["📍","Local Pricing","Calibrated to your city & state"],
+           ["💪","Workouts","Tailored 7-day training split"],
+           ["📊","Macro Targets","Precise protein, carb & fat breakdown"]
+          ].map(([icon,title,desc])=>e("div",{key:title,className:"ff-feature"},
+            e("div",{className:"ff-feature-icon"},icon),
+            e("div",{className:"ff-feature-title"},title),
+            e("div",{className:"ff-feature-desc"},desc)
+          ))
+        ),
+        e("button",{className:"ff-btn",onClick:()=>setStep(1)},"BUILD MY PLAN →")
+      ),
+ 
+      // ── STEP 1 ──
+      step===1 && e("div",{className:"ff-fadein"},
+        e("span",{className:"ff-eyebrow"},"Step 1 of 5"),
+        e("h2",{className:"ff-h2"},"YOUR ",e("span",{className:"ff-grad"},"PROFILE")),
+        e("p",{className:"ff-sub"},"This data is the foundation of your entire personalized plan."),
+        e("div",{className:"ff-card"},
+          e("div",{className:"ff-grid2",style:{marginBottom:16}},
+            inp("First Name","name",{placeholder:"e.g. Alex"}),
+            inp("Age","age",{type:"number",placeholder:"e.g. 28"})
+          ),
+          e("div",{className:"ff-grid2",style:{marginBottom:16}},
+            sel("Biological Sex","sex",[{v:"",l:"Select…"},"Male","Female","Prefer not to say"]),
+            sel("Blood Type","bloodType",[{v:"",l:"Select…"},...BLOOD_TYPES])
+          ),
+          e("div",{className:"ff-grid2"},
+            e("div",null,
+              e("label",{className:"ff-label"},"Weight"),
+              e("div",{style:{display:"flex",gap:8}},
+                e("input",{className:"ff-input",type:"number",placeholder:"175",value:form.weight,onChange:ev=>setF("weight",ev.target.value),style:{flex:1}}),
+                e("select",{className:"ff-input",value:form.weightUnit,onChange:ev=>setF("weightUnit",ev.target.value),style:{width:68,flexShrink:0}},e("option",null,"lbs"),e("option",null,"kg"))
+              )
+            ),
+            e("div",null,
+              e("label",{className:"ff-label"},"Height"),
+              e("div",{style:{display:"flex",gap:8}},
+                e("input",{className:"ff-input",placeholder:form.heightUnit==="ft"?"5'10\"":"178 cm",value:form.height,onChange:ev=>setF("height",ev.target.value),style:{flex:1}}),
+                e("select",{className:"ff-input",value:form.heightUnit,onChange:ev=>setF("heightUnit",ev.target.value),style:{width:68,flexShrink:0}},e("option",null,"ft"),e("option",null,"cm"))
+              )
+            )
+          )
+        ),
+        e("div",{className:"ff-btn-row"},e("button",{className:"ff-btn",onClick:()=>setStep(2)},"CONTINUE →"))
+      ),
+ 
+      // ── STEP 2 ──
+      step===2 && e("div",{className:"ff-fadein"},
+        e("span",{className:"ff-eyebrow"},"Step 2 of 5"),
+        e("h2",{className:"ff-h2"},"YOUR ",e("span",{className:"ff-grad"},"SOMATOTYPE")),
+        e("p",{className:"ff-sub"},"Body type shapes how you respond to food and training. Hybrids are common and valid."),
+        e("div",{className:"ff-choices"},
+          BODY_TYPES.map(bt=>e("div",{key:bt.id,className:"ff-choice"+(form.bodyType===bt.id?" sel":""),onClick:()=>setF("bodyType",bt.id)},
+            e("span",{className:"ff-choice-icon"},bt.icon),
+            e("div",{className:"ff-choice-title"},bt.title),
+            e("div",{className:"ff-choice-desc"},bt.desc)
+          ))
+        ),
+        e("div",{className:"ff-btn-row"},
+          e("button",{className:"ff-btn-ghost ff-btn",onClick:()=>setStep(1)},"← BACK"),
+          e("button",{className:"ff-btn",onClick:()=>setStep(3),disabled:!form.bodyType},"CONTINUE →")
+        )
+      ),
+ 
+      // ── STEP 3 ──
+      step===3 && e("div",{className:"ff-fadein"},
+        e("span",{className:"ff-eyebrow"},"Step 3 of 5"),
+        e("h2",{className:"ff-h2"},"HEALTH ",e("span",{className:"ff-grad"},"& DIET")),
+        e("p",{className:"ff-sub"},"Your plan adapts around any conditions or restrictions."),
+        e("div",{className:"ff-card",style:{marginBottom:14}},
+          e("label",{className:"ff-label"},"Health Conditions — select all that apply"),
+          HEALTH_CONDITIONS.map(c=>e("div",{key:c,className:"ff-check-row",onClick:()=>toggleCond(c)},
+            e("div",{className:"ff-checkbox"+(form.healthConditions.includes(c)?" on":"")}),
+            e("span",{style:{fontSize:".88rem"}},c)
+          )),
+          e("div",{style:{marginTop:16}},
+            e("label",{className:"ff-label"},"Other conditions, allergies or intolerances"),
+            e("input",{className:"ff-input",placeholder:"e.g. peanut allergy, gout…",value:form.otherConditions,onChange:ev=>setF("otherConditions",ev.target.value)})
+          )
+        ),
+        e("div",{className:"ff-card"},
+          e("label",{className:"ff-label"},"Dietary Preference"),
+          e("div",{className:"ff-choices",style:{gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))"}},
+            DIET_PREFS.map(d=>e("div",{key:d,className:"ff-choice"+(form.dietPref===d?" sel":""),onClick:()=>setF("dietPref",d),style:{padding:"12px 14px"}},
+              e("div",{className:"ff-choice-title",style:{fontSize:".85rem"}},d)
+            ))
+          )
+        ),
+        e("div",{className:"ff-btn-row"},
+          e("button",{className:"ff-btn-ghost ff-btn",onClick:()=>setStep(2)},"← BACK"),
+          e("button",{className:"ff-btn",onClick:()=>setStep(4)},"CONTINUE →")
+        )
+      ),
+ 
+      // ── STEP 4 ──
+      step===4 && e("div",{className:"ff-fadein"},
+        e("span",{className:"ff-eyebrow"},"Step 4 of 5"),
+        e("h2",{className:"ff-h2"},"GOALS ",e("span",{className:"ff-grad"},"& ACTIVITY")),
+        e("p",{className:"ff-sub"},"Your primary goal determines the structure of your nutrition and training."),
+        e("div",{className:"ff-choices",style:{marginBottom:20}},
+          GOALS.map(g=>e("div",{key:g.id,className:"ff-choice"+(form.goal===g.id?" sel":""),onClick:()=>setF("goal",g.id)},
+            e("span",{className:"ff-choice-icon"},g.icon),
+            e("div",{className:"ff-choice-title"},g.title),
+            e("div",{className:"ff-choice-desc"},g.desc)
+          ))
+        ),
+        e("div",{className:"ff-card"},
+          e("label",{className:"ff-label"},"Current Activity Level"),
+          ACTIVITY_LEVELS.map(a=>e("div",{key:a.id,className:"ff-check-row",onClick:()=>setF("activityLevel",a.id)},
+            e("div",{className:"ff-radio-dot"+(form.activityLevel===a.id?" on":"")}),
+            e("div",null,
+              e("div",{style:{fontSize:".9rem",fontWeight:500}},a.label),
+              e("div",{style:{fontSize:".76rem",color:"var(--muted)"}},a.desc)
+            )
+          ))
+        ),
+        e("div",{className:"ff-btn-row"},
+          e("button",{className:"ff-btn-ghost ff-btn",onClick:()=>setStep(3)},"← BACK"),
+          e("button",{className:"ff-btn",onClick:()=>setStep(5),disabled:!form.goal||!form.activityLevel},"CONTINUE →")
+        )
+      ),
+ 
+      // ── STEP 5 ──
+      step===5 && e("div",{className:"ff-fadein"},
+        e("span",{className:"ff-eyebrow"},"Step 5 of 5"),
+        e("h2",{className:"ff-h2"},"BUDGET ",e("span",{className:"ff-grad"},"& LOCATION")),
+        e("p",{className:"ff-sub"},"Grocery recommendations are calibrated to your weekly budget and local market."),
+        e("div",{className:"ff-card"},
+          e("div",{className:"ff-grid2",style:{marginBottom:16}},
+            inp("Weekly Grocery Budget ($)","budget",{type:"number",placeholder:"e.g. 120"}),
+            e("div",null,
+              e("label",{className:"ff-label"},"Plan Duration"),
+              e("select",{className:"ff-input",value:form.weeks,onChange:ev=>setF("weeks",ev.target.value)},
+                e("option",{value:"1"},"1 Week"),e("option",{value:"4"},"4 Weeks"),e("option",{value:"8"},"8 Weeks"),e("option",{value:"12"},"12 Weeks")
+              )
+            )
+          ),
+          e("div",{className:"ff-grid2"},
+            inp("City","city",{placeholder:"e.g. Austin"}),
+            inp("State","state",{placeholder:"e.g. TX"})
+          )
+        ),
+        e("div",{className:"ff-btn-row"},
+          e("button",{className:"ff-btn-ghost ff-btn",onClick:()=>setStep(4)},"← BACK"),
+          e("button",{className:"ff-btn",onClick:generate,disabled:!form.budget||!form.city},"🔥 GENERATE MY PLAN")
+        )
+      ),
+ 
+      // ── LOADING ──
+      step===6 && e("div",{className:"ff-loading"},
+        e("div",{className:"ff-spinner"}),
+        e("div",{className:"ff-load-title"},"BUILDING YOUR PLAN"),
+        e("div",{className:"ff-load-sub"},loadMsg)
+      ),
+ 
+      // ── RESULTS ──
+      step===7 && result && !result.error && e("div",{className:"ff-fadein"},
+        e("span",{className:"ff-eyebrow"},"Your personalized plan"),
+        e("h2",{className:"ff-h2"},(form.name?form.name.toUpperCase()+"'S ":""),e("span",{className:"ff-grad"},"FORMFUEL PLAN")),
+        e("div",{className:"ff-tabs"},
+          [["overview","📊 Overview"],["diet","🍽️ Meals"],["grocery","🛒 Grocery"],["workout","💪 Workout"]].map(([id,lbl])=>
+            e("button",{key:id,className:"ff-tab"+(tab===id?" on":""),onClick:()=>setTab(id)},lbl)
+          )
+        ),
+ 
+        // OVERVIEW
+        tab==="overview" && e("div",null,
+          e("div",{className:"ff-stat-grid"},
+            [["BMI",result.bmi,result.bmiCategory],["Calories",result.dailyCalories,"per day"],["Protein",(result.proteinG||"")+"g","daily"],["Carbs",(result.carbsG||"")+"g","daily"],["Fat",(result.fatG||"")+"g","daily"]].map(([label,val,sub])=>
+              e("div",{key:label,className:"ff-stat"},
+                e("div",{className:"ff-stat-val"},val),
+                e("div",{className:"ff-stat-label"},label),
+                sub&&e("div",{className:"ff-stat-sub"},sub)
+              )
+            )
+          ),
+          e("div",{className:"ff-card"},e("div",{className:"ff-section-title"},"Body Type Analysis"),e("p",{style:{fontSize:".88rem",lineHeight:1.7,color:"rgba(240,232,220,.8)",fontWeight:300}},result.bodyTypeAnalysis)),
+          e("div",{className:"ff-card"},e("div",{className:"ff-section-title"},"Key Insights"),(result.keyInsights||[]).map((ins,i)=>e("div",{key:i,className:"ff-insight-row"},e("span",{className:"ff-insight-num"},"0"+(i+1)),e("span",null,ins)))),
+          e("div",{className:"ff-card"},e("div",{className:"ff-section-title"},"Dietary Notes"),e("p",{style:{fontSize:".88rem",lineHeight:1.7,color:"rgba(240,232,220,.8)",fontWeight:300}},result.dietNotes)),
+          result.supplementSuggestions&&result.supplementSuggestions.length>0&&e("div",{className:"ff-card"},e("div",{className:"ff-section-title"},"Supplement Suggestions"),e("div",{style:{display:"flex",flexWrap:"wrap",gap:8}},result.supplementSuggestions.map((s,i)=>e("span",{key:i,className:"ff-tag"},s))))
+        ),
+ 
+        // MEALS
+        tab==="diet" && e("div",null,(result.mealPlan||[]).map((meal,i)=>
+          e("div",{key:i,className:"ff-meal"},
+            e("div",{className:"ff-meal-label"},meal.meal),
+            e("div",{className:"ff-meal-head"},
+              e("div",{className:"ff-meal-name"},meal.name),
+              e("div",{style:{display:"flex",gap:8,flexShrink:0}},e("span",{className:"ff-tag"},meal.calories+" cal"),e("span",{className:"ff-tag"},meal.protein+" protein"))
+            ),
+            e("p",{className:"ff-meal-desc"},meal.description),
+            meal.recipe&&meal.recipe.length>0&&e("div",null,
+              e("label",{className:"ff-label",style:{marginBottom:8}},"Recipe"),
+              meal.recipe.map((s,si)=>e("div",{key:si,className:"ff-recipe-step"},e("span",{className:"ff-step-num"},(si+1)+"."),s))
+            ),
+            meal.ingredients&&meal.ingredients.length>0&&e("div",null,
+              e("div",{className:"ff-divider"}),
+              e("label",{className:"ff-label"},"Ingredients"),
+              e("div",{className:"ff-ing-list"},meal.ingredients.map((ing,ii)=>e("span",{key:ii,className:"ff-ing"},ing.qty+" "+ing.item,e("span",{className:"ff-ing-cost"},ing.estCost))))
+            )
+          )
+        )),
+ 
+        // GROCERY
+        tab==="grocery" && e("div",null,
+          e("div",{className:"ff-budget-bar"},
+            e("div",null,
+              e("div",{style:{fontSize:".7rem",color:"var(--muted)",letterSpacing:".1em",textTransform:"uppercase",fontFamily:"'Cormorant Garamond',serif",marginBottom:4}},"Estimated Weekly Cost"),
+              e("div",{className:"ff-budget-val"},result.estimatedWeeklyCost),
+              e("div",{style:{fontSize:".73rem",color:"var(--muted)",marginTop:4}},"Prices for "+form.city+", "+form.state)
+            ),
+            e("div",{style:{textAlign:"right"}},
+              e("div",{style:{fontSize:".7rem",color:"var(--muted)",letterSpacing:".1em",textTransform:"uppercase",fontFamily:"'Cormorant Garamond',serif",marginBottom:4}},"Your Budget"),
+              e("div",{style:{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2rem",color:"var(--cream)"}},"$"+form.budget)
+            )
+          ),
+          (result.groceryList||[]).filter(c=>c.items&&c.items.length>0).map((cat,i)=>
+            e("div",{key:i,className:"ff-grocery-cat"},
+              e("div",{className:"ff-grocery-cat-title"},cat.category),
+              cat.items.map((item,ii)=>e("div",{key:ii,className:"ff-grocery-row"},
+                e("div",null,e("div",null,item.name),e("div",{className:"ff-grocery-qty"},item.qty)),
+                e("div",{className:"ff-grocery-price"},item.estCost)
+              ))
+            )
+          )
+        ),
+ 
+        // WORKOUT
+        tab==="workout" && e("div",null,
+          (result.workoutPlan||[]).map((day,i)=>
+            e("div",{key:i,className:"ff-workout-day"},
+              e("div",{className:"ff-day-label"},day.day+(day.duration!=="-"?" · "+day.duration:"")),
+              e("div",{className:"ff-day-focus"},day.focus),
+              (day.exercises||[]).map((ex,ei)=>e("div",{key:ei,className:"ff-ex-row"},
+                e("div",null,e("div",{className:"ff-ex-name"},ex.name),ex.notes&&e("div",{className:"ff-ex-note"},ex.notes)),
+                e("div",{className:"ff-ex-sets"},
+                  e("div",null,ex.sets+"×"+ex.reps),
+                  ex.rest&&ex.rest!=="-"&&e("div",{className:"ff-ex-rest"},"Rest "+ex.rest)
+                )
+              ))
+            )
+          ),
+          result.progressTips&&result.progressTips.length>0&&e("div",{className:"ff-card",style:{marginTop:8}},
+            e("div",{className:"ff-section-title"},"Progress Tips"),
+            result.progressTips.map((t,i)=>e("div",{key:i,className:"ff-tip-row"},e("span",{className:"ff-tip-arrow"},"→"),t))
+          )
+        ),
+ 
+        e("div",{className:"ff-disclaimer"},"⚠️ ",e("strong",null,"Medical Disclaimer:")," FormFuel provides AI-generated wellness content for informational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment. Always consult your physician before making significant dietary or exercise changes."),
+        e("div",{className:"ff-btn-row",style:{marginTop:28}},e("button",{className:"ff-btn-ghost ff-btn",onClick:reset},"START OVER"))
+      ),
+ 
+      // ERROR
+      step===7 && result && result.error && e("div",{className:"ff-card",style:{textAlign:"center",padding:"56px 32px"}},
+        e("div",{style:{fontSize:"2.5rem",marginBottom:16}},"⚠️"),
+        e("p",{style:{color:"var(--muted)",marginBottom:24,fontWeight:300}},"Something went wrong. Please try again."),
+        e("button",{className:"ff-btn",onClick:()=>setStep(5)},"← TRY AGAIN")
+      )
+    )
+  );
+}
+ 
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
+</body>
+</html
